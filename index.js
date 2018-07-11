@@ -7,25 +7,19 @@ exports.handler = async (event) => {
     if (!TOPIC_ARN) {
         throw 'Missing TOPIC_ARN env var';
     }
+
     console.log(`Topic arn: ${TOPIC_ARN}`);
     let {detail: {TranscriptionJobName}} = event;
     console.log(`Transcription job name: ${TranscriptionJobName}`);
 
-    [apiKeyId, pid] = TranscriptionJobName.split('_-_');
+    let [apiKeyId, pid] = TranscriptionJobName.split('_-_');
     if (!apiKeyId || !pid) {
         throw `Invalid TranscriptionJobName: ${TranscriptionJobName}`;
     }
     console.log(`api key id: ${apiKeyId}`);
     console.log(`pid: ${pid}`);
 
-    let {
-        TranscriptionJob: {
-            Transcript: {
-                TranscriptFileUri
-            }
-        }
-    } = await transcribeServiceApi.getTranscriptionJob({TranscriptionJobName});
-
+    let {TranscriptionJob: {Transcript: {TranscriptFileUri}}} = await transcribeServiceApi.getTranscriptionJob({TranscriptionJobName});
     console.log(`Transcription file uri: ${TranscriptFileUri}`);
 
     snsApi.publish({
