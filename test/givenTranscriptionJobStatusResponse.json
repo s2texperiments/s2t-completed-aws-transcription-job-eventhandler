@@ -1,0 +1,17 @@
+{
+  "TranscriptionJob": {
+    "TranscriptionJobName": "given_api_key_id_-_given_pid",
+    "TranscriptionJobStatus": "COMPLETED",
+    "LanguageCode": "en-US",
+    "MediaSampleRateHertz": 48000,
+    "MediaForma": "flac",
+    "Media": {
+      "MediaFileUri": "https://s3-eu-west-1.amazonaws.com/given_bucket/audio.flac"
+    },
+    "Transcript": {
+      "TranscriptFileUri": "https://s3-eu-west-1.amazonaws.com/aws_internal_bucket/transcription.json"
+    },
+    "CreationTime": "<timestamp>",
+    "CompletionTime": "<timestamp>"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "version": "0",
+  "id": "5163b1f5-3a72-8c39-b473-5b6bb6e177f1",
+  "detail-type": "Transcribe Job State Change",
+  "source": "aws.transcribe",
+  "account": "099687127161",
+  "time": "2018-07-10T22:35:15Z",
+  "region": "eu-west-1",
+  "resources": [],
+  "detail": {
+    "TranscriptionJobName": "given_api_key_id_-_given_pid",
+    "TranscriptionJobStatus": "COMPLETED"
+  }
+}
