@@ -61,7 +61,7 @@ describe('eventhandler', () => {
         }
 
         function expectSNSMessage(param, {expectedMessage = {TranscriptFileUri: "https://s3-eu-west-1.amazonaws.com/aws_internal_bucket/transcription.json"}} = {}) {
-            expect(param.Message).to.deep.equal(expectedMessage);
+            expect(JSON.parse(param.Message)).to.deep.equal(expectedMessage);
         }
 
         function expectStringMessageAttribute(messageAttribute, value) {

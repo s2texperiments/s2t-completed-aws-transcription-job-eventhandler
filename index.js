@@ -23,7 +23,7 @@ exports.handler = async (event) => {
     console.log(`Transcription file uri: ${TranscriptFileUri}`);
 
     snsApi.publish({
-        Message: {TranscriptFileUri},
+        Message: JSON.stringify({TranscriptFileUri}),
         MessageAttributes: {
             "api-key-id": {
                 DataType: 'String',
