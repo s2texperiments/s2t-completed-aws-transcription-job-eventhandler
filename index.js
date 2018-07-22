@@ -5,6 +5,7 @@ const fetch = require("node-fetch");
 const TOPIC_ARN = process.env['TOPIC_ARN'];
 
 exports.handler = async (event) => {
+    console.log(`REQUEST: ${JSON.stringify(event)}`);
     if (!TOPIC_ARN) {
         throw 'Missing TOPIC_ARN env var';
     }
