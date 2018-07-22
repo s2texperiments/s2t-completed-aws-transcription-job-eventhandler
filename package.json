@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "echo 1"
   },
   "author": "",
   "license": "ISC",
@@ -18,5 +18,8 @@
     "mocha": "^5.2.0",
     "proxyquire": "^2.0.1",
     "sinon": "^6.0.0"
+  },
+  "dependencies": {
+    "node-fetch": "^2.1.2"
   }
 }

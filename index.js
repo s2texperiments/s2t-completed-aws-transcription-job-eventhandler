@@ -1,5 +1,6 @@
 let transcribeServiceApi = require('./transcribeServiceApi.js');
 let snsApi = require('./snsApi.js');
+const fetch = require("node-fetch");
 
 const TOPIC_ARN = process.env['TOPIC_ARN'];
 
@@ -22,6 +23,10 @@ exports.handler = async (event) => {
     let {TranscriptionJob: {Transcript: {TranscriptFileUri}}} = await transcribeServiceApi.getTranscriptionJob({TranscriptionJobName});
     console.log(`Transcription file uri: ${TranscriptFileUri}`);
 
+    let result = await fetch(TranscriptFileUri)
+        .then(response => response.json());
+    console.log("Result: ");
+    console.log(result);
     snsApi.publish({
         Message: JSON.stringify({TranscriptFileUri}),
         MessageAttributes: {
