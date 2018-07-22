@@ -24,7 +24,6 @@ describe('eventhandler', () => {
         nodeFetchFake = fake.resolves({text: () => getGivenFetchTextResponse('givenTranscriptFile.json')});
         s3PutObjectFake = fake.resolves("success");
 
-
         underTest = proxyquire('../index.js', {
             "./transcribeServiceApi": {
                 getTranscriptionJob: getTranscriptionJobFake

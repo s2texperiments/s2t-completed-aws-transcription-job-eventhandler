@@ -26,7 +26,7 @@ exports.handler = async (event) => {
     let Key = `aws/raw-transcription/${apiKeyId}/${pid}.json`;
     console.log(`Upload transcriptions file to s3 bucket: ${Bucket}/${Key}`);
 
-    s3Api.putObject({
+    return s3Api.putObject({
         Bucket,
         Key,
         Body,
