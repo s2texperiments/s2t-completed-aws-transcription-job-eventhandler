@@ -1,16 +1,15 @@
 let transcribeServiceApi = require('./transcribeServiceApi.js');
-let snsApi = require('./snsApi.js');
+let s3Api = require('./s3Api.js');
 const fetch = require("node-fetch");
 
-const TOPIC_ARN = process.env['TOPIC_ARN'];
+const Bucket = process.env['BUCKET'];
 
 exports.handler = async (event) => {
     console.log(`REQUEST: ${JSON.stringify(event)}`);
-    if (!TOPIC_ARN) {
-        throw 'Missing TOPIC_ARN env var';
+    if (!Bucket) {
+        throw 'Missing BUCKET env var';
     }
 
-    console.log(`Topic arn: ${TOPIC_ARN}`);
     let {detail: {TranscriptionJobName}} = event;
     console.log(`Transcription job name: ${TranscriptionJobName}`);
 
@@ -22,28 +21,19 @@ exports.handler = async (event) => {
     console.log(`pid: ${pid}`);
 
     let {TranscriptionJob: {Transcript: {TranscriptFileUri}}} = await transcribeServiceApi.getTranscriptionJob({TranscriptionJobName});
-    console.log(`Transcription file uri: ${TranscriptFileUri}`);
+    console.log(`Fetch transcription file: ${TranscriptFileUri}`);
+    let Body = await fetch(TranscriptFileUri).then(response => response.text());
+    let Key = `aws/raw-transcription/${apiKeyId}/${pid}.json`;
+    console.log(`Upload transcriptions file to s3 bucket: ${Bucket}/${Key}`);
 
-    let result = await fetch(TranscriptFileUri)
-        .then(response => response.json());
-    console.log("Result: ");
-    console.log(result);
-    snsApi.publish({
-        Message: JSON.stringify({TranscriptFileUri}),
-        MessageAttributes: {
-            "api-key-id": {
-                DataType: 'String',
-                StringValue: apiKeyId
-            },
-            pid: {
-                DataType: 'String',
-                StringValue: pid
-            },
-            "transcribe-provider": {
-                DataType: 'String',
-                StringValue: "aws"
-            }
-        },
-        TopicArn: TOPIC_ARN
+    s3Api.putObject({
+        Bucket,
+        Key,
+        Body,
+        Metadata: {
+            "api-key-id": apiKeyId,
+            pid,
+            "transcribe-provider": 'aws'
+        }
     });
 };

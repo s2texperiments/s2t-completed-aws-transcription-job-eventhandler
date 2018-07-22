@@ -1,9 +1,9 @@
 const AWS = require('aws-sdk');
-const sns = new AWS.SNS();
+const s3 = new AWS.S3();
 
 module.exports = {
-    publish: async (params) =>
+    putObject: async (params) =>
         new Promise((resolve, rejected) =>
-            sns.publish(params, (err, data) =>
+            s3.putObject(params, (err, data) =>
                 err ? rejected(err) : resolve(data)))
 };

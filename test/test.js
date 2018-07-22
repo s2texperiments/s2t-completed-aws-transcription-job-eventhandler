@@ -6,28 +6,32 @@ const fake = require('sinon').fake;
 const fs = require('fs');
 const dotEnv = require('dotenv');
 
-
 describe('eventhandler', () => {
 
     let givenCloudWatchEvent;
 
     let getTranscriptionJobFake,
-        snsPublishFake;
+        nodeFetchFake,
+        s3PutObjectFake;
 
     let underTest;
 
     beforeEach(() => {
+
         dotEnv.config({path: "test/.env"});
 
         getTranscriptionJobFake = fake.resolves(getGivenResponse("givenTranscriptionJobStatusResponse.json"));
-        snsPublishFake = fake.resolves("success");
+        nodeFetchFake = fake.resolves({text: () => getGivenFetchTextResponse('givenTranscriptFile.json')});
+        s3PutObjectFake = fake.resolves("success");
+
 
         underTest = proxyquire('../index.js', {
             "./transcribeServiceApi": {
                 getTranscriptionJob: getTranscriptionJobFake
             },
-            './snsApi': {
-                publish: snsPublishFake
+            'node-fetch': nodeFetchFake,
+            './s3Api': {
+                putObject: s3PutObjectFake
             }
         });
 
@@ -35,7 +39,8 @@ describe('eventhandler', () => {
 
     });
     describe('happy cases', async () => {
-        it('cloudwatch event: valid -> getTranscriptionJob: valid -> redirect with sns', async () => {
+        it('cloudwatch event: valid -> getTranscriptionJob: valid -> fetch: valid -> redirect with sns', async () => {
+
             await underTest.handler(givenCloudWatchEvent);
 
             let [getTranscriptionJobParam] = getTranscriptionJobFake.firstCall.args;
@@ -43,33 +48,23 @@ describe('eventhandler', () => {
                 "TranscriptionJobName": "given_api_key_id_-_given_pid"
             });
 
-            let [snsPublishParam] = snsPublishFake.firstCall.args;
-            expect(snsPublishParam).to.have.all.keys('TopicArn', 'Message', 'MessageAttributes');
-            expectSNSTopicArn(snsPublishParam);
-            expectSNSMessage(snsPublishParam);
+            let [fetchUrl] = nodeFetchFake.firstCall.args;
+            expect(fetchUrl).is.equal('https://s3-eu-west-1.amazonaws.com/aws_internal_bucket/transcription.json');
 
-            let messageAttributes = snsPublishParam.MessageAttributes;
-            expect(messageAttributes).to.have.all.keys('api-key-id', 'pid', 'transcribe-provider');
-            expectStringMessageAttribute(messageAttributes['api-key-id'], 'given_api_key_id');
-            expectStringMessageAttribute(messageAttributes.pid, 'given_pid');
-            expectStringMessageAttribute(messageAttributes['transcribe-provider'], 'aws');
+            let [s3PutObjectParam] = s3PutObjectFake.firstCall.args;
+            expect(s3PutObjectParam).to.have.all.keys('Bucket', 'Key', 'Body', 'Metadata');
+
+            expect(s3PutObjectParam.Bucket).to.equal('given_bucket');
+            expect(s3PutObjectParam.Key).to.equal('aws/raw-transcription/given_api_key_id/given_pid.json');
+            expect(s3PutObjectParam.Body).to.equal(getGivenFetchTextResponse('givenTranscriptFile.json'));
+
+            let metadata = s3PutObjectParam.Metadata;
+            expect(metadata).to.have.all.keys('api-key-id', 'pid', 'transcribe-provider');
+            expect(metadata['api-key-id']).to.equal('given_api_key_id');
+            expect(metadata.pid).to.equal('given_pid');
+            expect(metadata['transcribe-provider']).to.equal('aws');
         });
 
-
-        function expectSNSTopicArn(param, {expectedArn = 'given:arn:from:env'} = {}) {
-            expect(param.TopicArn).to.equal(expectedArn);
-        }
-
-        function expectSNSMessage(param, {expectedMessage = {TranscriptFileUri: "https://s3-eu-west-1.amazonaws.com/aws_internal_bucket/transcription.json"}} = {}) {
-            expect(JSON.parse(param.Message)).to.deep.equal(expectedMessage);
-        }
-
-        function expectStringMessageAttribute(messageAttribute, value) {
-            expect(messageAttribute).to.include({
-                DataType: 'String',
-                StringValue: value
-            });
-        }
     });
 
     describe('failing cases', async () => {
@@ -86,4 +81,8 @@ function getEventData(file) {
 
 function getGivenResponse(file) {
     return JSON.parse(fs.readFileSync(`test/${file}`, 'utf8'));
+}
+
+function getGivenFetchTextResponse(file) {
+    return fs.readFileSync(`test/${file}`, 'utf8');
 }
