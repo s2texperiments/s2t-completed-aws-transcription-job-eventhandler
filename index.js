@@ -23,7 +23,7 @@ exports.handler = async (event) => {
     let {TranscriptionJob: {Transcript: {TranscriptFileUri}}} = await transcribeServiceApi.getTranscriptionJob({TranscriptionJobName});
     console.log(`Fetch transcription file: ${TranscriptFileUri}`);
     let Body = await fetch(TranscriptFileUri).then(response => response.text());
-    let Key = `aws/raw-transcription/${apiKeyId}/${pid}.json`;
+    let Key = `raw-transcription/${apiKeyId}/${pid}.json`;
     console.log(`Upload transcriptions file to s3 bucket: ${Bucket}/${Key}`);
 
     return s3Api.putObject({

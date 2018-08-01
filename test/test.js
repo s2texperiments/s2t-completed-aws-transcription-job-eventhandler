@@ -54,7 +54,7 @@ describe('eventhandler', () => {
             expect(s3PutObjectParam).to.have.all.keys('Bucket', 'Key', 'Body', 'Metadata');
 
             expect(s3PutObjectParam.Bucket).to.equal('given_bucket');
-            expect(s3PutObjectParam.Key).to.equal('aws/raw-transcription/given_api_key_id/given_pid.json');
+            expect(s3PutObjectParam.Key).to.equal('raw-transcription/given_api_key_id/given_pid.json');
             expect(s3PutObjectParam.Body).to.equal(getGivenFetchTextResponse('givenTranscriptFile.json'));
 
             let metadata = s3PutObjectParam.Metadata;
